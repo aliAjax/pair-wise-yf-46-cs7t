@@ -1,28 +1,21 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { RundownItem } from "../types";
-
-const KEY = "pair-wise-yf-46/rundown";
+import { loadMaster } from "./master";
+import { seedItems } from "./seed";
 
 export const rundownApi = createApi({
   reducerPath: "rundownApi",
   baseQuery: fakeBaseQuery(),
   tagTypes: ["Rundown"],
   endpoints: (builder) => ({
-    getRundown: builder.query<RundownItem[], void>({
+    getRundown: builder.query<{ items: RundownItem[]; version: number }, void>({
       queryFn: async () => {
-        const raw = localStorage.getItem(KEY);
-        return { data: raw ? JSON.parse(raw) as RundownItem[] : [] };
+        const master = loadMaster(seedItems);
+        return { data: { items: master.items, version: master.version } };
       },
       providesTags: ["Rundown"]
-    }),
-    saveRundown: builder.mutation<{ ok: true }, RundownItem[]>({
-      queryFn: async (items) => {
-        localStorage.setItem(KEY, JSON.stringify(items));
-        return { data: { ok: true } };
-      },
-      invalidatesTags: ["Rundown"]
     })
   })
 });
 
-export const { useGetRundownQuery, useSaveRundownMutation } = rundownApi;
+export const { useGetRundownQuery } = rundownApi;
